@@ -2,17 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-//import 'package:flutter/services.dart';
 
 import 'package:video_player/video_player.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIOverlays([
-    SystemUiOverlay.bottom,
-    //This line is used for showing the bottom bar
-  ]);
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setEnabledSystemUIOverlays([
+  //   SystemUiOverlay.bottom,
+  //   //This line is used for showing the bottom bar
+  // ]);
 
   runApp(MyApp());
 }
@@ -46,13 +45,11 @@ class _MyHomePageState extends State<MyHomePage>
   late AnimationController _controller1;
   late Animation<double> _animation1;
   bool show = true;
-  late bool isPortrait;
+  double videoContainerRatio = 0.5;
+  late Orientation target;
   @override
   void initState() {
     super.initState();
-    // SystemChrome.setEnabledSystemUIOverlays([
-    //   SystemUiOverlay.bottom, //This line is used for showing the bottom bar
-    // ]);
 
     _controller1 =
         AnimationController(vsync: this, duration: Duration(milliseconds: 0));
@@ -74,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     // bool _lights = false;
-    bool addlist = true;
+    // bool addlist = true;
 
     bool isPortrait =
         MediaQuery.of(context).orientation == Orientation.portrait;
@@ -83,237 +80,310 @@ class _MyHomePageState extends State<MyHomePage>
     });
 
     return Scaffold(
-      body: SafeArea(
-        child: !_controller.value.isInitialized
-            ? Container(
-                height: MediaQuery.of(context).size.width / 2,
-                width: MediaQuery.of(context).size.width,
-                color: Colors.white,
-              )
-            : AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: Stack(
-                  children: [
-                    VideoPlayer(_controller),
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              //  color: Colors.black,
-                              height: MediaQuery.of(context).size.height,
-                              // width: MediaQuery.of(context).size.width / 3.2),
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width / 4.4,
-                          ),
-                          Expanded(
-                            child: Container(
-                              //  color: Colors.black,
-                              height: MediaQuery.of(context).size.height,
-                            ),
-                          )
-                        ],
+      body: Align(
+        alignment: isPortrait ? Alignment.topCenter : Alignment.center,
+        child: SafeArea(
+          child: !_controller.value.isInitialized
+              ? Container(
+                  height: MediaQuery.of(context).size.width / 2,
+                  width: MediaQuery.of(context).size.width,
+                  color: Colors.white,
+                )
+              : GestureDetector(
+                  child: Stack(
+                    children: [
+                      Transform.scale(
+                        scale: getScale(),
+                        child: AspectRatio(
+                          aspectRatio: _controller.value.aspectRatio,
+                          child: VideoPlayer(_controller),
+                        ),
                       ),
-                    ),
-                    FadeTransition(
-                      opacity: _animation1,
-                      child: GestureDetector(
-                        onTap: () => visibilityControl(),
-                        child: Container(
-                          color: Colors.black54,
-                          child: Stack(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(18.0),
-                                child: !isPortrait
-                                    ? InkWell(
-                                        onTap: () {
-                                          information();
-                                        },
-                                        child: Image.asset(
-                                          'assets/cast.png',
-                                          height: 35,
-                                          width: 30,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : Container(
-                                        height: 10,
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                //  color: Colors.black,
+                                height: MediaQuery.of(context).size.height,
+                                // width: MediaQuery.of(context).size.width / 3.2),
+                              ),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 4.4,
+                            ),
+                            Expanded(
+                              child: Container(
+                                //  color: Colors.black,
+                                height: MediaQuery.of(context).size.height,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      FadeTransition(
+                        opacity: _animation1,
+                        child: GestureDetector(
+                          onTap: () => visibilityControl(),
+                          child: Container(
+                            color: Colors.black54,
+                            child: Stack(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(18.0),
+                                  child: !isPortrait
+                                      ? InkWell(
+                                          onTap: () {
+                                            information(isPortrait);
+                                          },
+                                          child: Image.asset(
+                                            'assets/cast.png',
+                                            height: 35,
+                                            width: 30,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : Container(
+                                          // color: Colors.black,
+                                          // height: 10,
+                                          // width: 10,
+                                          ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(18.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Switch(
+                                      //     value: _lights,
+                                      //     onChanged: (bool value) {
+                                      //       setState(() {
+                                      //         _lights = value;
+                                      //       });
+                                      //     }),
+                                      SizedBox(
                                         width: 10,
                                       ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(18.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    // Switch(
-                                    //     value: _lights,
-                                    //     onChanged: (bool value) {
-                                    //       setState(() {
-                                    //         _lights = value;
-                                    //       });
-                                    //     }),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    InkWell(
-                                      onTap: () {},
-                                      child: Icon(
-                                        Icons.subtitles,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        setting();
-                                      },
-                                      child: Icon(
-                                        Icons.settings,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Center(
-                                child: Container(
-                                  //  color: Colors.black,
-                                  width: MediaQuery.of(context).size.width / 2,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          visibilityControl();
-                                          // _controller.value.isPlaying
-                                          //     ? _controller.pause()
-                                          //     : _controller.play();
-                                        },
-                                        icon: Icon(
-                                          // _controller.value.isPlaying
-                                          //     ? Icons.pause
-                                          //     : Icons.skip_previous,
-                                          Icons.skip_previous,
+                                      InkWell(
+                                        onTap: () {},
+                                        child: Icon(
+                                          Icons.subtitles,
                                           color: Colors.white,
                                         ),
                                       ),
-                                      Container(
-                                        child: _controller.value.isBuffering
-                                            ? CircularProgressIndicator(
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                        Color>(Colors.red),
-                                              )
-                                            : IconButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    visibilityControl();
-                                                    _controller.value.isPlaying
-                                                        ? _controller.pause()
-                                                        : _controller.play();
-                                                  });
-                                                },
-                                                icon: Icon(
-                                                  _controller.value.isPlaying
-                                                      ? Icons.pause
-                                                      : Icons.play_arrow,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
+                                      SizedBox(
+                                        width: 10,
                                       ),
-                                      IconButton(
-                                        onPressed: () {
-                                          visibilityControl();
-                                          // _controller.value.isPlaying
-                                          //     ? _controller.pause()
-                                          //     : _controller.play();
+
+                                      InkWell(
+                                        onTap: () {
+                                          setting(isPortrait);
                                         },
-                                        icon: Icon(
-                                          // _controller.value.isPlaying
-                                          //     ? Icons.pause
-                                          //     : Icons.skip_previous,
-                                          Icons.skip_next,
+                                        child: Icon(
+                                          Icons.settings,
                                           color: Colors.white,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ),
-                              Positioned.fill(
-                                child: Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 10,
-                                    ),
-                                    child: ProgressBar(
-                                      buffered:
-                                          _controller.value.buffered.length == 0
-                                              ? Duration.zero
-                                              : _controller
-                                                  .value.buffered[0].end,
-                                      progress: _controller.value.position,
-                                      total: _controller.value.duration,
-                                      progressBarColor: Colors.red,
-                                      baseBarColor:
-                                          Colors.white.withOpacity(0.14),
-                                      bufferedBarColor:
-                                          Colors.white.withOpacity(0.4),
-                                      thumbColor: Colors.red,
-                                      barHeight: 3.0,
-                                      thumbRadius: 5.0,
-                                      timeLabelTextStyle:
-                                          TextStyle(color: Colors.white),
-                                      onSeek: (duration) {
-                                        _controller.seekTo(duration);
-                                      },
+                                Center(
+                                  child: Container(
+                                    width:
+                                        MediaQuery.of(context).size.width / 2,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () {
+                                            visibilityControl();
+                                            // _controller.value.isPlaying
+                                            //     ? _controller.pause()
+                                            //     : _controller.play();
+                                          },
+                                          icon: Icon(
+                                            // _controller.value.isPlaying
+                                            //     ? Icons.pause
+                                            //     : Icons.skip_previous,
+                                            Icons.skip_previous,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Container(
+                                          child: _controller.value.isBuffering
+                                              ? CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.red),
+                                                )
+                                              : IconButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      visibilityControl();
+                                                      _controller
+                                                              .value.isPlaying
+                                                          ? _controller.pause()
+                                                          : _controller.play();
+                                                    });
+                                                  },
+                                                  icon: Icon(
+                                                    _controller.value.isPlaying
+                                                        ? Icons.pause
+                                                        : Icons.play_arrow,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () {
+                                            visibilityControl();
+                                            // _controller.value.isPlaying
+                                            //     ? _controller.pause()
+                                            //     : _controller.play();
+                                          },
+                                          icon: Icon(
+                                            // _controller.value.isPlaying
+                                            //     ? Icons.pause
+                                            //     : Icons.skip_previous,
+                                            Icons.skip_next,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                                Positioned.fill(
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 10,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: !isPortrait
+                                                ? MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    1.5
+                                                : MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    1.3,
+                                            child: ProgressBar(
+                                              buffered: _controller.value
+                                                          .buffered.length ==
+                                                      0
+                                                  ? Duration.zero
+                                                  : _controller
+                                                      .value.buffered[0].end,
+                                              progress:
+                                                  _controller.value.position,
+                                              total: _controller.value.duration,
+                                              progressBarColor: Colors.red,
+                                              baseBarColor: Colors.white
+                                                  .withOpacity(0.14),
+                                              bufferedBarColor:
+                                                  Colors.white.withOpacity(0.4),
+                                              thumbColor: Colors.red,
+                                              barHeight: 3.0,
+                                              thumbRadius: 5.0,
+                                              timeLabelTextStyle: TextStyle(
+                                                  color: Colors.white),
+                                              onSeek: (duration) {
+                                                _controller.seekTo(duration);
+                                              },
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 15,
+                                          ),
+                                          InkWell(
+                                            onTap: () {
+                                              if (isPortrait) {
+                                                SystemChrome
+                                                    .setPreferredOrientations([
+                                                  DeviceOrientation
+                                                      .landscapeLeft,
+                                                  DeviceOrientation
+                                                      .landscapeRight
+                                                ]);
+                                              } else {
+                                                SystemChrome
+                                                    .setPreferredOrientations([
+                                                  DeviceOrientation
+                                                      .portraitDown,
+                                                  DeviceOrientation.portraitUp
+                                                ]);
+                                              }
+                                            },
+                                            child: Icon(
+                                              Icons.fit_screen,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }
 
-  visibilityControl() {
-    _controller1.duration = Duration(milliseconds: 200);
-    if (show) {
-      show = false;
+  double getScale() {
+    double videoRatio = _controller.value.aspectRatio;
 
-      _controller1.reverse();
+    if (videoRatio < 1) {
+      ///for tall videos, we just return the inverse of the controller aspect ratio
+      return 1 / videoRatio;
     } else {
-      show = true;
-      _controller1.forward();
+      ///for wide videos, divide the video AR by the fixed container AR
+      ///so that the video does not over scale
 
-      Future.delayed(Duration(seconds: 5), () {
-        show = false;
-
-        _controller1.reverse();
-      });
+      return videoRatio / videoContainerRatio;
     }
   }
 
-  void information() {
+  visibilityControl() {
+    _controller1.duration = Duration(milliseconds: 200);
+    if (!_controller.value.isPlaying) {
+      if (show) {
+        show = false;
+
+        _controller1.reverse();
+      } else {
+        show = true;
+        _controller1.forward();
+
+        Future.delayed(Duration(seconds: 5), () {
+          show = false;
+
+          _controller1.reverse();
+        });
+      }
+    }
+  }
+
+  void information(isPortrait) {
     showModalBottomSheet(
       backgroundColor: Colors.white,
       context: context,
@@ -379,7 +449,7 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
-  void setting() {
+  void setting(isPortrait) {
     showModalBottomSheet(
       //isDismissible: true,
       // enableDrag: true,
@@ -387,7 +457,7 @@ class _MyHomePageState extends State<MyHomePage>
       isScrollControlled: true, // set this to true
       builder: (_) {
         return Container(
-          height: 300,
+          height: 240,
           color: Colors.white,
           child: Column(children: [
             ListTile(
@@ -397,16 +467,11 @@ class _MyHomePageState extends State<MyHomePage>
                 onTap: () {}),
             ListTile(
                 dense: false,
-                leading: Icon(Icons.fit_screen),
-                title: Text('Fit to screen'),
-                onTap: () {}),
-            ListTile(
-                dense: false,
                 leading: Icon(Icons.audiotrack),
                 title: Text('Audio'),
                 onTap: () {
                   Navigator.pop(context);
-                  subtitle();
+                  subtitle(isPortrait);
                 }),
             ListTile(
                 dense: false,
@@ -414,7 +479,7 @@ class _MyHomePageState extends State<MyHomePage>
                 title: Text('Sub title'),
                 onTap: () {
                   Navigator.pop(context);
-                  subtitle();
+                  subtitle(isPortrait);
                 }),
             ListTile(
                 dense: false,
@@ -422,7 +487,7 @@ class _MyHomePageState extends State<MyHomePage>
                 title: Text('Video Quality >'),
                 onTap: () {
                   Navigator.pop(context);
-                  video();
+                  video(isPortrait);
                 }),
           ]),
         );
@@ -430,7 +495,7 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
-  void video() {
+  void video(isPortrait) {
     showModalBottomSheet(
       //  enableDrag: true,
 
@@ -489,7 +554,7 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
-  subtitle() {
+  subtitle(isPortrait) {
     // bool value = true;
     showModalBottomSheet(
       //  enableDrag: true,
