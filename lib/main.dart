@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:subtitle_wrapper_package/data/models/style/subtitle_border_style.dart';
+import 'package:subtitle_wrapper_package/data/models/style/subtitle_position.dart';
+import 'package:subtitle_wrapper_package/data/models/style/subtitle_style.dart';
+import 'package:subtitle_wrapper_package/subtitle_controller.dart';
 
 import 'package:video_player/video_player.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
@@ -38,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
   late VideoPlayerController _controller;
   late AnimationController _controller1;
-  late SubTitleWrapper _subtitleController;
+  late SubtitleController _subtitleController;
   late Animation<double> _animation1;
   bool show = true;
   double videoContainerRatio = 0.5;
@@ -48,6 +52,10 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   void initState() {
     super.initState();
+    _subtitleController = SubtitleController(
+      subtitleUrl: "https://pastebin.com/raw/ZWWAL7fK",
+      subtitleType: SubtitleType.webvtt,
+    );
 
     _controller1 =
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
@@ -85,34 +93,23 @@ class _MyHomePageState extends State<MyHomePage>
             : Stack(
                 alignment: isPortrait ? Alignment.topCenter : Alignment.center,
                 children: [
-                  Transform.scale(
-                    scale: 1.21,
-                    child: AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
+                  SubTitleWrapper(
+                    videoPlayerController: _controller,
+                    subtitleController: _subtitleController,
+                    subtitleStyle: SubtitleStyle(
+                      textColor: Colors.white,
+                      borderStyle: SubtitleBorderStyle(color: Colors.black),
+                      position: SubtitlePosition(
+                        bottom: isPortrait ? 10 : 50,
+                      ),
+                      hasBorder: true,
                     ),
-                  ),
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            //  color: Colors.black,
-                            height: MediaQuery.of(context).size.height,
-                            // width: MediaQuery.of(context).size.width / 3.2),
-                          ),
-                        ),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 4.4,
-                        ),
-                        Expanded(
-                          child: Container(
-                            //  color: Colors.black,
-                            height: MediaQuery.of(context).size.height,
-                          ),
-                        )
-                      ],
+                    videoChild: Transform.scale(
+                      scale: 1.21,
+                      child: AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      ),
                     ),
                   ),
                   FadeTransition(
@@ -307,6 +304,41 @@ class _MyHomePageState extends State<MyHomePage>
                         ),
                       ),
                     ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height,
+                          // width: MediaQuery.of(context).size.width / 3.2),
+                          child: GestureDetector(
+                            onDoubleTap: () {
+                              Duration oldposition = _controller.value.position;
+                              int seconds = oldposition.inSeconds - 10;
+                              Duration newposition = Duration(seconds: seconds);
+                              _controller.seekTo(newposition);
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width / 4.4,
+                      ),
+                      Expanded(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height,
+                          child: GestureDetector(
+                            onDoubleTap: () {
+                              Duration oldposition = _controller.value.position;
+                              int seconds = oldposition.inSeconds + 10;
+                              Duration newposition = Duration(seconds: seconds);
+                              _controller.seekTo(newposition);
+                            },
+                          ),
+                        ),
+                      )
+                    ],
                   ),
                 ],
               ),
